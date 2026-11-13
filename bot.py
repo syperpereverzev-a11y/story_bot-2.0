@@ -8,33 +8,39 @@ from collections import defaultdict
 from aiohttp import web
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-GROQ_KEY = os.getenv("GROQ_KEY")
+OPENROUTER_KEY = os.getenv("OPENROUTER_KEY")
 
 bot = Bot(token=TELEGRAM_TOKEN)
 dp = Dispatcher()
 history = defaultdict(list)
-MAX_HISTORY = 20
 
-SYSTEM_PROMPT = (
-    "Ты — рассказчик и собеседник для взрослых (18+). "
-    "Все персонажи строго старше 18 лет. "
-    "Веди ролевые диалоги, описывай сцены и персонажей подробно. "
-    "Если просят картинку — предложи команду /img с промптом."
-)
+SYSTEM_PROMPT = "Ты — рассказчик и собеседник для взрослых (18+). Все персонажи строго старше 18 лет. Веди ролевые диалоги, описывай сцены подробно."
 
 async def llm_reply(user_id, text):
     history[user_id].append({"role": "user", "content": text})
-    if len(history[user_id]) > MAX_HISTORY:
-        history[user_id] = history[user_id][-MAX_HISTORY:]
+    if len(history[user_id]) > 20:
+        history[user_id] = history[user_id][-20:]
+    
     messages = [{"role": "system", "content": SYSTEM_PROMPT}] + history[user_id]
-    url = "https://openrouter.ai/api/v1/chat/completions".
-    headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
-    payload = {"model": "gemma2-9b-it","messages": messages,
-               "temperature": 0.9, "max_tokens": 1024}
+    
+    # Исправленная ссылка (без дублей)
+    api_url = "https://openrouter.ai/api/v1/chat/completions"
+    
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "model": "meta-llama/llama-3.1-8b-instruct:free", 
+        "messages": messages,
+        "temperature": 0.9
+    }
+    
     async with aiohttp.ClientSession() as s:
-        async with s.post(url, headers=headers, json=payload) as r:
+        async with s.post(api_url, headers=headers, json=payload) as r:
             if r.status != 200:
-                raise Exception(f"Groq {r.status}: {await r.text()}")
+                raise Exception(f"OpenRouter {r.status}: {await r.text()}")
             data = await r.json()
             reply = data["choices"][0]["message"]["content"]
             history[user_id].append({"role": "assistant", "content": reply})
@@ -42,9 +48,9 @@ async def llm_reply(user_id, text):
 
 async def generate_image(prompt):
     encoded = urllib.parse.quote(prompt)
-    url = f"https://image.pollinations.ai/prompt/{encoded}?width=1024&height=1024&nologo=true"
+    img_url = f"https://image.pollinations.ai/prompt/{encoded}?width=1024&height=1024&nologo=true"
     async with aiohttp.ClientSession() as s:
-        async with s.get(url, timeout=180) as r:
+        async with s.get(img_url, timeout=180) as r:
             if r.status != 200:
                 raise Exception(f"Image {r.status}")
             return await r.read()
@@ -72,7 +78,6 @@ async def handle(message: Message):
     except Exception as e:
         await message.answer(f"Ошибка: {e}")
 
-# --- Заглушка для Render ---
 async def health_check(request):
     return web.Response(text="Bot is alive!")
 
@@ -84,12 +89,11 @@ async def start_web_server():
     port = int(os.environ.get("PORT", 8080))
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
-# ---------------------------
 
 async def main():
     print("Bot started")
-    await start_web_server()  # Запускаем веб-сервер для Render
-    await dp.start_polling(bot) # Запускаем самого бота
+    await start_web_server()
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
