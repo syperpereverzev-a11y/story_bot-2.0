@@ -29,7 +29,7 @@ async def llm_reply(user_id, text):
     messages = [{"role": "system", "content": SYSTEM_PROMPT}] + history[user_id]
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
-    payload = {"model": "llama3-70b-8192","messages": messages,
+    payload = {"model": "gemma2-9b-it","messages": messages,
                "temperature": 0.9, "max_tokens": 1024}
     async with aiohttp.ClientSession() as s:
         async with s.post(url, headers=headers, json=payload) as r:
