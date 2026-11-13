@@ -32,7 +32,7 @@ async def llm_reply(user_id, text):
     }
     
     payload = {
-        "model": "meta-llama/llama-3.1-8b-instruct:free", 
+        "model": "openrouter/free", 
         "messages": messages,
         "temperature": 0.9
     }
