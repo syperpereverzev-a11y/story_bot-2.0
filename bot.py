@@ -27,7 +27,7 @@ async def llm_reply(user_id, text):
     if len(history[user_id]) > MAX_HISTORY:
         history[user_id] = history[user_id][-MAX_HISTORY:]
     messages = [{"role": "system", "content": SYSTEM_PROMPT}] + history[user_id]
-    url = "https://api.groq.com/openai/v1/chat/completions"
+    url =  url = "https://openrouter.ai/api/v1/chat/completions".
     headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
     payload = {"model": "gemma2-9b-it","messages": messages,
                "temperature": 0.9, "max_tokens": 1024}
