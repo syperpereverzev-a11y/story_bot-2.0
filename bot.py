@@ -48,7 +48,7 @@ async def llm_reply(user_id, text):
     }
     
     payload = {
-        "model": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free", 
+        "model": "gryphe/mythomax-l2-13b:free", 
         "messages": messages,
         "temperature": 0.9
     }
