@@ -48,7 +48,7 @@ async def llm_reply(user_id, text):
     }
     
     payload = {
-        "model": "gryphe/mythomax-l2-13b:free", 
+        "model": "arliai/qwq-32b-arliai-rpr-v1:free", 
         "messages": messages,
         "temperature": 0.9
     }
