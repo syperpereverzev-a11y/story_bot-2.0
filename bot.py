@@ -48,7 +48,7 @@ async def llm_reply(user_id, text):
     }
     
     payload = {
-        "model": "openrouter/free", 
+        "model": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free", 
         "messages": messages,
         "temperature": 0.9
     }
